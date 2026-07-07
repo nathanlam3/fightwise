@@ -1,9 +1,53 @@
 export default function Scorecard({ scorecard, onSelectFighter }) {
-  if (!scorecard) return null;
+  if (!scorecard) {
+    return null;
+  }
+
+  const date = new Date("2026-07-11T21:00Z");
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZoneName: "short",
+  }).formatToParts(date);
+
+  const get = (type) => parts.find((p) => p.type === type)?.value;
+
+  const time =
+    get("minute") === "00"
+      ? `${get("hour")}${get("dayPeriod")}`
+      : `${get("hour")}:${get("minute")}${get("dayPeriod")}`;
+
+  const formatted_date = `${get("weekday")}, ${get("month")} ${get("day")} | ${time} ${get("timeZoneName")}`;
+
+  const location = scorecard.competitions[0].venue;
+  const venue = location.fullName;
+  const city = location.address.city;
+  const state = location.address.state;
 
   return (
     <div style={{ fontFamily: "sans-serif", maxWidth: 800, margin: "2rem auto" }}>
       <h2>{scorecard.name}</h2>
+      <p
+        style={{
+          fontSize: "15px",
+          fontWeight: 400,
+        }}
+      >
+        {venue}, {city}, {state}
+      </p>
+      <p
+        style={{
+          fontSize: "15px",
+          fontWeight: 400,
+        }}
+      >
+        {formatted_date}
+      </p>
       {scorecard.competitions
         .slice()
         .reverse()
@@ -51,6 +95,12 @@ export default function Scorecard({ scorecard, onSelectFighter }) {
                 <p>
                   <strong
                     onClick={() => onSelectFighter(redCorner.id)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.textDecoration = "underline";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.textDecoration = "none";
+                    }}
                     style={{ cursor: "pointer", color: "#c0392b" }}
                   >
                     {redCorner.athlete.displayName}
@@ -58,6 +108,12 @@ export default function Scorecard({ scorecard, onSelectFighter }) {
                   {" vs "}
                   <strong
                     onClick={() => onSelectFighter(blueCorner.id)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.textDecoration = "underline";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.textDecoration = "none";
+                    }}
                     style={{ cursor: "pointer", color: "#2980b9" }}
                   >
                     {blueCorner.athlete.displayName}
