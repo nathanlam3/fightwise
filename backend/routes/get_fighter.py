@@ -18,7 +18,8 @@ def get_fighter(fighter_id: str):
         (c for c in competitors if c["id"] == fighter_id),
         None
     )
-
+    print(competitor.get("winner"))
+    print(competitor)
     if not competitor:
         # Fallback: at least give the headshot, since that's constructible without any lookup
         return {
