@@ -1,4 +1,4 @@
-export const STATS_TO_GET = {
+export const FIGHT_STATS_FANTASY_POINTS = {
   sigStrikesLanded: {
     displayName: "Significant Strikes",
     fantasyMultiplier: 0.1,
@@ -23,19 +23,19 @@ export const STATS_TO_GET = {
 
 export const FIGHT_RESULT_FANTASY_POINTS = {
   win: {
-    displayName: "DEC Win",
+    displayName: "Win",
     fantasyMultiplier: 3,
   },
   win_by_finish: {
-    displayName: "FINISH Win",
+    displayName: "Win by Finish",
     fantasyMultiplier: 5,
   },
   loss: {
-    displayName: "DEC Loss",
+    displayName: "Loss",
     fantasyMultiplier: -2,
   },
   loss_by_finish: {
-    displayName: "FINISH Loss",
+    displayName: "Loss by Finish",
     fantasyMultiplier: -3,
   },
   draw: {

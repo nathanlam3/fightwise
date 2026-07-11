@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { STATS_TO_GET } from "./constants";
+import { FIGHT_STATS_FANTASY_POINTS } from "./constants";
 import React from "react";
 
 export default function FightStats({ competition }) {
@@ -61,7 +61,7 @@ export default function FightStats({ competition }) {
             blueStatValue={"N/A"}
             statLabelFontWeight={800}
           />
-          {Object.entries(STATS_TO_GET).map(
+          {Object.entries(FIGHT_STATS_FANTASY_POINTS).map(
             ([statKey, { displayName: statLabel, fantasyMultiplier }]) => (
               <React.Fragment key={statKey}>
                 <FightStatsRow

@@ -15,7 +15,7 @@ export default function Scorecard({
     return null;
   }
 
-  const date = new Date("2026-07-11T21:00Z");
+  const date = new Date(scorecard.date);
 
   const parts = new Intl.DateTimeFormat("en-US", {
     weekday: "short",
@@ -36,10 +36,14 @@ export default function Scorecard({
 
   const formatted_date = `${get("month")} ${get("day")} | ${time} ${get("timeZoneName")}`;
 
+  
   const location = scorecard.competitions[0].venue;
   const venue = location.fullName;
   const city = location.address.city;
   const state = location.address.state;
+
+  const now = Date.now();
+  const eventStarted = now > date.getTime()
 
   return (
     <div style={{ fontFamily: "sans-serif", maxWidth: 800, margin: "2rem auto" }}>
@@ -62,22 +66,35 @@ export default function Scorecard({
       </p>
 
       {isDraftActive && currentPlayerName && (
-        <p
+        <div
           style={{
-            fontSize: "16px",
-            fontWeight: 700,
-            marginTop: "0.5rem",
-            marginBottom: "0.25rem",
+            display: "inline-block",
+            marginTop: "1.5rem",
+            marginBottom: "1rem",
+            padding: "0.8rem 1.8rem",
+            borderRadius: "15px",
+            background: "#89cfa6",
+            boxShadow: "0 10px 30px rgba(56, 176, 58, 0.5)",
           }}
         >
-          {currentPlayerName}, it is your turn to draft
-        </p>
+          <p
+            style={{
+              fontFamily: "'Tahoma', sans-serif",
+              fontSize: "21px",
+              fontWeight: 600,
+              color: "#3b3b3b",
+              margin: 0,
+              letterSpacing: "0.09em",
+            }}
+          >
+            <strong>NEXT PICK: {currentPlayerName.toUpperCase()}</strong>
+          </p>
+        </div>
       )}
-
       {isDraftActive && (
         <p
           style={{
-            fontSize: "13px",
+            fontSize: "15px",
             fontWeight: 400,
             color: "#888",
             marginTop: 0,
@@ -88,7 +105,7 @@ export default function Scorecard({
         </p>
       )}
 
-      {isDraftFinished && (
+      {isDraftFinished && !eventStarted && (
         <p
           style={{
             fontSize: "16px",
@@ -140,16 +157,30 @@ export default function Scorecard({
                   }}
                 >
                   {draftedByMap[redCorner.id] && (
-                    <p
+                    <div
                       style={{
-                        fontSize: "0.9rem",
-                        fontWeight: 700,
-                        color: "#c0392b",
-                        margin: 0,
+                        position: "relative",
+                        zIndex: -1,
+                        marginBottom: "-10px",
+                        background: "#89cfa6",
+                        padding: "0.3rem 1rem 0.3rem",
+                        borderRadius: "5px",
+                        border: "3px solid #3b3b3b",
                       }}
                     >
-                      {draftedByMap[redCorner.id]}
-                    </p>
+                      <p
+                        style={{
+                          fontFamily: "'Tahoma', sans-serif",
+                          fontSize: "0.8rem",
+                          fontWeight: 700,
+                          color: "#3b3b3b",
+                          margin: 0,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {draftedByMap[redCorner.id].toUpperCase()}
+                      </p>
+                    </div>
                   )}
                   <img
                     src={redHeadshotUrl}
@@ -175,6 +206,7 @@ export default function Scorecard({
                           id: redCorner.id,
                           name: redCorner.athlete.displayName,
                           opponentId: blueCorner.id,
+                          statistics: redCorner.statistics,
                         })
                       }
                       disabled={draftedFighterIds.has(redCorner.id)}
@@ -183,9 +215,9 @@ export default function Scorecard({
                         fontSize: "0.8rem",
                         fontWeight: 600,
                         borderRadius: "6px",
-                        border: "2px solid #c0392b",
+                        border: "2px solid #27ae60",
                         background: draftedFighterIds.has(redCorner.id) ? "#eee" : "white",
-                        color: draftedFighterIds.has(redCorner.id) ? "#aaa" : "#c0392b",
+                        color: draftedFighterIds.has(redCorner.id) ? "#aaa" : "#27ae60",
                         cursor: draftedFighterIds.has(redCorner.id) ? "not-allowed" : "pointer",
                       }}
                     >
@@ -254,16 +286,30 @@ export default function Scorecard({
                   }}
                 >
                   {draftedByMap[blueCorner.id] && (
-                    <p
+                    <div
                       style={{
-                        fontSize: "0.9rem",
-                        fontWeight: 700,
-                        color: "#2980b9",
-                        margin: 0,
+                        position: "relative",
+                        zIndex: -1,
+                        marginBottom: "-10px",
+                        background: "#89cfa6",
+                        padding: "0.3rem 1rem 0.3rem",
+                        borderRadius: "5px",
+                        border: "3px solid #3b3b3b",
                       }}
                     >
-                      {draftedByMap[blueCorner.id]}
-                    </p>
+                      <p
+                        style={{
+                          fontFamily: "'Tahoma', sans-serif",
+                          fontSize: "0.8rem",
+                          fontWeight: 700,
+                          color: "#3b3b3b",
+                          margin: 0,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {draftedByMap[blueCorner.id].toUpperCase()}
+                      </p>
+                    </div>
                   )}
                   <img
                     src={blueHeadshotUrl}
@@ -297,9 +343,9 @@ export default function Scorecard({
                         fontSize: "0.8rem",
                         fontWeight: 600,
                         borderRadius: "6px",
-                        border: "2px solid #2980b9",
+                        border: "2px solid #27ae60",
                         background: draftedFighterIds.has(blueCorner.id) ? "#eee" : "white",
-                        color: draftedFighterIds.has(blueCorner.id) ? "#aaa" : "#2980b9",
+                        color: draftedFighterIds.has(blueCorner.id) ? "#aaa" : "#27ae60",
                         cursor: draftedFighterIds.has(blueCorner.id) ? "not-allowed" : "pointer",
                       }}
                     >

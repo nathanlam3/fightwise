@@ -8,6 +8,13 @@ import CreateGameModal from "./CreateGameModal.jsx";
 import Scorecard from "./Scorecard.jsx";
 import LoadingScreen from "./LoadingScreen.jsx";
 
+function getSerpentineIndex(pickNumber, playerCount) {
+  const round = Math.floor(pickNumber / playerCount);
+  const positionInRound = pickNumber % playerCount;
+  const isReversedRound = round % 2 === 1;
+  return isReversedRound ? playerCount - 1 - positionInRound : positionInRound;
+}
+
 export default function App() {
   const [scorecard, setScorecard] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -72,17 +79,29 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/scorecard")
-      .then((res) => res.json())
-      .then((scorecard) => {
-        const updatedScorecard = calculateFantasyPoints(scorecard);
+    const fetchScorecard = () => {
+      return fetch("http://localhost:8000/api/scorecard")
+        .then((res) => res.json())
+        .then((scorecard) => {
+          const updatedScorecard = calculateFantasyPoints(scorecard);
+          setScorecard(updatedScorecard);
+        })
+        .catch(() => setScorecard("Scorecard not found"));
+    };
 
-        setScorecard(updatedScorecard);
-        setTimeout(() => {
-          setLoading(false);
-        }, 500);
-      })
-      .catch(() => setScorecard("Scorecard not found"));
+    // Initial load: wait for both the fetch AND a minimum 500ms delay
+    const minDelay = new Promise((resolve) => setTimeout(resolve, 500));
+
+    Promise.all([fetchScorecard(), minDelay]).then(() => {
+      setLoading(false);
+    });
+
+    // Poll every 2 minutes after that (background refreshes, no loading screen)
+    const intervalId = setInterval(fetchScorecard, 2 * 60 * 1000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
   }, []);
 
   const eventStartTime = scorecard?.date ? new Date(scorecard.date).getTime() : null;
@@ -93,10 +112,31 @@ export default function App() {
   const eventTooFarAway = false; //eventStartTime && now < eventStartTime - 24 * 60 * 60 * 1000
   const eventAlreadyStarted = false; //now > eventStartTime
 
-  const [isDraftActive, setIsDraftActive] = useState(false);
-  const [draftOrder, setDraftOrder] = useState([]);
-  const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
-  const [picksMade, setPicksMade] = useState(0);
+  const [isDraftActive, setIsDraftActive] = useState(() => {
+    return localStorage.getItem("fightwise_draft_active") === "true";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("fightwise_draft_active", isDraftActive);
+  }, [isDraftActive]);
+
+  const [draftOrder, setDraftOrder] = useState(() => {
+    const saved = localStorage.getItem("fightwise_draft_order");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("fightwise_draft_order", JSON.stringify(draftOrder));
+  }, [draftOrder]);
+
+  const [picksMade, setPicksMade] = useState(() => {
+    const saved = localStorage.getItem("fightwise_picks_made");
+    return saved ? Number(saved) : 0;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("fightwise_picks_made", picksMade);
+  }, [picksMade]);
 
   const totalPicksAllowed =
     numFighters && players.length > 0
@@ -104,11 +144,18 @@ export default function App() {
       : 0;
 
   const picksRemaining = totalPicksAllowed - picksMade;
+  const numRounds = totalPicksAllowed / players.length;
   const isDraftFinished = !isDraftActive && picksMade > 0 && picksMade >= totalPicksAllowed;
 
   const currentPlayer =
     isDraftActive && draftOrder.length > 0
-      ? players.find((p) => p.id === draftOrder[currentTurnIndex % draftOrder.length])
+      ? players.find((p) => {
+          const index =
+            draftMode === "Serpentine"
+              ? getSerpentineIndex(picksMade, draftOrder.length)
+              : picksMade % draftOrder.length;
+          return p.id === draftOrder[index];
+        })
       : null;
 
   const draftedFighterIds = new Set(players.flatMap((p) => p.drafted_fighters.map((f) => f.id)));
@@ -124,7 +171,6 @@ export default function App() {
     const order = players.map((p) => p.id);
 
     setDraftOrder(order);
-    setCurrentTurnIndex(0);
     setPicksMade(0);
     setIsDraftActive(true);
   };
@@ -143,16 +189,32 @@ export default function App() {
 
     if (newPicksMade >= totalPicksAllowed) {
       setIsDraftActive(false);
-    } else {
-      setCurrentTurnIndex((prev) => prev + 1);
     }
   };
 
   useEffect(() => {
     if (picksMade > 0) {
-      // window.scrollTo({ top: 0, behavior: "smooth" }); 
+      // window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [picksMade]);
+
+  const getFighterStatistics = (fighterId) => {
+    if (!scorecard) return null;
+    for (const competition of scorecard.competitions) {
+      const match = competition.competitors.find((c) => c.id === fighterId);
+      if (match) return match.statistics;
+    }
+    return null;
+  };
+
+  const playerFantasyTotals = players.reduce((totals, player) => {
+    const total = player.drafted_fighters.reduce((sum, fighter) => {
+      const liveStats = getFighterStatistics(fighter.id);
+      return sum + (liveStats?.fantasyValue || 0);
+    }, 0);
+    totals[player.id] = total;
+    return totals;
+  }, {});
 
   const handleResetAll = () => {
     if (
@@ -171,7 +233,6 @@ export default function App() {
     setDraftMode("Serpentine");
     setDraftOrderSetting("Random");
     setDraftOrder([]);
-    setCurrentTurnIndex(0);
     setPicksMade(0);
     setIsDraftActive(false);
 
@@ -179,6 +240,9 @@ export default function App() {
     localStorage.removeItem("fightwise_game_created");
     localStorage.removeItem("fightwise_draft_mode");
     localStorage.removeItem("fightwise_draft_order_setting");
+    localStorage.removeItem("fightwise_draft_active");
+    localStorage.removeItem("fightwise_draft_order");
+    localStorage.removeItem("fightwise_picks_made");
 
     setCreateGameModalOpen(false);
   };
@@ -297,7 +361,7 @@ export default function App() {
                   Start Draft is available 24 hours before the event.
                 </p>
               )}
-              {isDraftFinished && (
+              {
                 <button
                   disabled={eventAlreadyStarted}
                   onClick={handleResetAll}
@@ -335,8 +399,81 @@ export default function App() {
                 >
                   {"Reset"}
                 </button>
-              )}
+              }
             </div>
+
+            {isDraftFinished && (
+              <table
+                style={{
+                  margin: "2rem auto",
+                  borderCollapse: "collapse",
+                  width: "100%",
+                  maxWidth: "400px",
+                  fontFamily: "sans-serif",
+                }}
+              >
+                <thead>
+                  <tr>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "0.6rem 1rem",
+                        borderBottom: "2px solid black",
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      PLAYER
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "right",
+                        padding: "0.6rem 1rem",
+                        borderBottom: "2px solid black",
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      POINTS
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {players
+                    .slice()
+                    .sort((a, b) => playerFantasyTotals[b.id] - playerFantasyTotals[a.id])
+                    .map((player, index) => (
+                      <tr key={player.id}>
+                        <td
+                          style={{
+                            textAlign: "left",
+                            padding: "0.6rem 1rem",
+                            borderBottom: "1px solid #ddd",
+                            fontWeight:
+                              index === 0 && playerFantasyTotals[player.id].toFixed(1) > 0
+                                ? 700
+                                : 400,
+                          }}
+                        >
+                          {index === 0 && playerFantasyTotals[player.id].toFixed(1) > 0 && "🏆 "}
+                          {player.name}
+                        </td>
+                        <td
+                          style={{
+                            textAlign: "right",
+                            padding: "0.6rem 1rem",
+                            borderBottom: "1px solid #ddd",
+                            fontWeight:
+                              index === 0 && playerFantasyTotals[player.id].toFixed(1) > 0
+                                ? 700
+                                : 400,
+                          }}
+                        >
+                          {playerFantasyTotals[player.id].toFixed(1)} pts
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            )}
 
             <Scorecard
               scorecard={scorecard}
