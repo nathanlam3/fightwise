@@ -5,7 +5,7 @@ export const FIGHT_STATS_FANTASY_POINTS = {
   },
   knockDowns: {
     displayName: "Knockdowns",
-    fantasyMultiplier: 0.75,
+    fantasyMultiplier: 0.5,
   },
   takedownsLanded: {
     displayName: "Takedowns",
@@ -24,19 +24,19 @@ export const FIGHT_STATS_FANTASY_POINTS = {
 export const FIGHT_RESULT_FANTASY_POINTS = {
   win: {
     displayName: "Win",
-    fantasyMultiplier: 3,
+    fantasyMultiplier: 2,
   },
   win_by_finish: {
     displayName: "Win by Finish",
-    fantasyMultiplier: 5,
+    fantasyMultiplier: 3,
   },
   loss: {
     displayName: "Loss",
-    fantasyMultiplier: -2,
+    fantasyMultiplier: -1,
   },
   loss_by_finish: {
     displayName: "Loss by Finish",
-    fantasyMultiplier: -3,
+    fantasyMultiplier: -2,
   },
   draw: {
     displayName: "Draw",

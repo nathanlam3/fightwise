@@ -6,7 +6,8 @@ export default function FightStats({ competition }) {
   const [open, setOpen] = useState(false);
   const redCornerStats = competition.competitors[0].statistics;
   const blueCornerStats = competition.competitors[1].statistics;
-
+  const status = competition.status.type.name
+  const round = competition.status.period
   return (
     <div>
       <button
@@ -54,11 +55,11 @@ export default function FightStats({ competition }) {
           }}
         >
           <FightStatsRow
-            redStatValue={"N/A"}
-            redFantasyValue={0}
+            redStatValue={redCornerStats["fightResult"].displayName}
+            redFantasyValue={redCornerStats["fightResult"].fantasyValue}
             statLabel={"Fight Result"}
-            blueFantasyValue={0}
-            blueStatValue={"N/A"}
+            blueFantasyValue={blueCornerStats["fightResult"].fantasyValue}
+            blueStatValue={blueCornerStats["fightResult"].displayName}
             statLabelFontWeight={800}
           />
           {Object.entries(FIGHT_STATS_FANTASY_POINTS).map(

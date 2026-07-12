@@ -194,7 +194,7 @@ export default function App() {
 
   useEffect(() => {
     if (picksMade > 0) {
-      // window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 375, behavior: "smooth" });
     }
   }, [picksMade]);
 
@@ -202,6 +202,7 @@ export default function App() {
     if (!scorecard) return null;
     for (const competition of scorecard.competitions) {
       const match = competition.competitors.find((c) => c.id === fighterId);
+      console.log(match)
       if (match) return match.statistics;
     }
     return null;
@@ -210,7 +211,7 @@ export default function App() {
   const playerFantasyTotals = players.reduce((totals, player) => {
     const total = player.drafted_fighters.reduce((sum, fighter) => {
       const liveStats = getFighterStatistics(fighter.id);
-      return sum + (liveStats?.fantasyValue || 0);
+      return sum + (liveStats?.fantasyTotalValue || 0);
     }, 0);
     totals[player.id] = total;
     return totals;
@@ -448,12 +449,12 @@ export default function App() {
                             padding: "0.6rem 1rem",
                             borderBottom: "1px solid #ddd",
                             fontWeight:
-                              index === 0 && playerFantasyTotals[player.id].toFixed(1) > 0
+                              index === 0 && playerFantasyTotals[player.id].toFixed(2) > 0
                                 ? 700
                                 : 400,
                           }}
                         >
-                          {index === 0 && playerFantasyTotals[player.id].toFixed(1) > 0 && "🏆 "}
+                          {index === 0 && playerFantasyTotals[player.id].toFixed(2) > 0 && "🏆 "}
                           {player.name}
                         </td>
                         <td
@@ -467,7 +468,7 @@ export default function App() {
                                 : 400,
                           }}
                         >
-                          {playerFantasyTotals[player.id].toFixed(1)} pts
+                          {playerFantasyTotals[player.id].toFixed(2)} pts
                         </td>
                       </tr>
                     ))}
@@ -485,6 +486,9 @@ export default function App() {
               onDraftFighter={handleDraftFighter}
               picksRemaining={picksRemaining}
               isDraftFinished={isDraftFinished}
+              draftOrder={draftOrder}
+              numRounds={players.length > 0 ? totalPicksAllowed / players.length : 0}
+              players={players}
             />
 
             <FighterModal

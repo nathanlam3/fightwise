@@ -10,6 +10,9 @@ export default function Scorecard({
   onDraftFighter,
   picksRemaining,
   isDraftFinished,
+  draftOrder,
+  numRounds,
+  players,
 }) {
   if (!scorecard) {
     return null;
@@ -36,14 +39,13 @@ export default function Scorecard({
 
   const formatted_date = `${get("month")} ${get("day")} | ${time} ${get("timeZoneName")}`;
 
-  
   const location = scorecard.competitions[0].venue;
   const venue = location.fullName;
   const city = location.address.city;
   const state = location.address.state;
 
   const now = Date.now();
-  const eventStarted = now > date.getTime()
+  const eventStarted = now > date.getTime();
 
   return (
     <div style={{ fontFamily: "sans-serif", maxWidth: 800, margin: "2rem auto" }}>
@@ -128,6 +130,8 @@ export default function Scorecard({
           const redCorner = fighters[0];
           const blueCorner = fighters[1];
           const status = competition.status.type.description;
+          const round =  competition.status.period;
+          const displayClock = competition.status.displayClock;
 
           const redHeadshotUrl = `https://a.espncdn.com/i/headshots/mma/players/full/${redCorner.id}.png`;
           const blueHeadshotUrl = `https://a.espncdn.com/i/headshots/mma/players/full/${blueCorner.id}.png`;
@@ -275,6 +279,17 @@ export default function Scorecard({
                   >
                     {status}
                   </p>
+                  {round > 0 && <p
+                    style={{
+                      fontFamily: "Monaco",
+                      textTransform: "uppercase",
+                      fontWeight: 800,
+                      fontSize: "13px",
+                      color: "#767676",
+                    }}
+                  >
+                    Round {round} - {displayClock}
+                  </p>}
                 </div>
 
                 <div
@@ -355,7 +370,7 @@ export default function Scorecard({
                 </div>
               </div>
 
-              <FightStats competition={competition} />
+              {!isDraftActive && <FightStats competition={competition} />}
             </div>
           );
         })}
