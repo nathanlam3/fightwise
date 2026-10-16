@@ -6,8 +6,8 @@ export default function FightStats({ competition }) {
   const [open, setOpen] = useState(false);
   const redCornerStats = competition.competitors[0].statistics;
   const blueCornerStats = competition.competitors[1].statistics;
-  const status = competition.status.type.name
-  const round = competition.status.period
+  const status = competition.status.type.name;
+  const round = competition.status.period;
   return (
     <div>
       <button

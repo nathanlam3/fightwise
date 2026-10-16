@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { PLACEHOLDER_HEADSHOT } from "./constants";
 
 export default function FighterModal({ fighterId, onClose }) {
   const [fighter, setFighter] = useState(null);
@@ -24,6 +25,8 @@ export default function FighterModal({ fighterId, onClose }) {
   }, [fighterId]);
 
   if (!fighterId) return null;
+
+  const headshot_url = `https://a.espncdn.com/i/headshots/mma/players/full/${fighterId}.png`;
 
   return (
     <div
@@ -84,10 +87,11 @@ export default function FighterModal({ fighterId, onClose }) {
               }}
             >
               <img
-                src={fighter.headshot_url}
+                src={headshot_url}
                 alt={fighter.name || "Fighter"}
                 onError={(e) => {
-                  e.target.style.display = "none";
+                  e.target.onerror = null;
+                  e.target.src = PLACEHOLDER_HEADSHOT;
                 }}
                 style={{
                   width: "150px",

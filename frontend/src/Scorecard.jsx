@@ -1,4 +1,5 @@
 import FightStats from "./FightStats";
+import { PLACEHOLDER_HEADSHOT } from "./constants";
 
 export default function Scorecard({
   scorecard,
@@ -130,7 +131,7 @@ export default function Scorecard({
           const redCorner = fighters[0];
           const blueCorner = fighters[1];
           const status = competition.status.type.description;
-          const round =  competition.status.period;
+          const round = competition.status.period;
           const displayClock = competition.status.displayClock;
 
           const redHeadshotUrl = `https://a.espncdn.com/i/headshots/mma/players/full/${redCorner.id}.png`;
@@ -191,7 +192,8 @@ export default function Scorecard({
                     alt={redCorner.athlete.displayName}
                     onClick={() => onSelectFighter(redCorner.id)}
                     onError={(e) => {
-                      e.target.style.visibility = "hidden";
+                      e.target.onerror = null;
+                      e.target.src = PLACEHOLDER_HEADSHOT;
                     }}
                     style={{
                       width: "100px",
@@ -279,17 +281,19 @@ export default function Scorecard({
                   >
                     {status}
                   </p>
-                  {round > 0 && <p
-                    style={{
-                      fontFamily: "Monaco",
-                      textTransform: "uppercase",
-                      fontWeight: 800,
-                      fontSize: "13px",
-                      color: "#767676",
-                    }}
-                  >
-                    Round {round} - {displayClock}
-                  </p>}
+                  {round > 0 && (
+                    <p
+                      style={{
+                        fontFamily: "Monaco",
+                        textTransform: "uppercase",
+                        fontWeight: 800,
+                        fontSize: "13px",
+                        color: "#767676",
+                      }}
+                    >
+                      Round {round} - {displayClock}
+                    </p>
+                  )}
                 </div>
 
                 <div
@@ -331,7 +335,8 @@ export default function Scorecard({
                     alt={blueCorner.athlete.displayName}
                     onClick={() => onSelectFighter(blueCorner.id)}
                     onError={(e) => {
-                      e.target.style.visibility = "hidden";
+                      e.target.onerror = null;
+                      e.target.src = PLACEHOLDER_HEADSHOT;
                     }}
                     style={{
                       width: "100px",

@@ -47,3 +47,7 @@ export const FIGHT_RESULT_FANTASY_POINTS = {
     fantasyMultiplier: 0,
   },
 };
+
+export const PLACEHOLDER_HEADSHOT =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ddd'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23bbb'/%3E%3Cpath d='M20 90 Q50 60 80 90 Z' fill='%23bbb'/%3E%3C/svg%3E";
+  

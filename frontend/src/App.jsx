@@ -84,6 +84,14 @@ export default function App() {
         .then((res) => res.json())
         .then((scorecard) => {
           const updatedScorecard = calculateFantasyPoints(scorecard);
+
+          const storedEventId = localStorage.getItem("fightwise_event_id");
+
+          if (storedEventId && storedEventId !== String(scorecard.id)) {
+            // Event changed — wipe everything without the confirm prompt
+            resetAllState();
+          }
+
           setScorecard(updatedScorecard);
         })
         .catch(() => setScorecard("Scorecard not found"));
@@ -95,7 +103,7 @@ export default function App() {
     Promise.all([fetchScorecard(), minDelay]).then(() => {
       setLoading(false);
     });
-
+    
     // Poll every 2 minutes after that (background refreshes, no loading screen)
     const intervalId = setInterval(fetchScorecard, 2 * 60 * 1000);
 
@@ -104,13 +112,17 @@ export default function App() {
     };
   }, []);
 
+  const [eventId, setEventId] = useState(() => {
+    return localStorage.getItem("fightwise_event_id");
+  });
+
   const eventStartTime = scorecard?.date ? new Date(scorecard.date).getTime() : null;
   const numFighters = scorecard?.competitions ? 2 * scorecard.competitions.length : null;
 
   const now = Date.now();
 
-  const eventTooFarAway = false; //eventStartTime && now < eventStartTime - 24 * 60 * 60 * 1000
-  const eventAlreadyStarted = false; //now > eventStartTime
+  const eventTooFarAway = eventStartTime && now < eventStartTime - 24 * 60 * 60 * 1000
+  const eventAlreadyStarted = now > eventStartTime
 
   const [isDraftActive, setIsDraftActive] = useState(() => {
     return localStorage.getItem("fightwise_draft_active") === "true";
@@ -202,7 +214,7 @@ export default function App() {
     if (!scorecard) return null;
     for (const competition of scorecard.competitions) {
       const match = competition.competitors.find((c) => c.id === fighterId);
-      console.log(match)
+      console.log(match);
       if (match) return match.statistics;
     }
     return null;
@@ -217,15 +229,7 @@ export default function App() {
     return totals;
   }, {});
 
-  const handleResetAll = () => {
-    if (
-      !window.confirm(
-        "This will reset everything — players, draft settings, and all picks. Continue?"
-      )
-    ) {
-      return;
-    }
-
+  const resetAllState = () => {
     setPlayers([
       { id: 1, name: "", drafted_fighters: [] },
       { id: 2, name: "", drafted_fighters: [] },
@@ -246,6 +250,17 @@ export default function App() {
     localStorage.removeItem("fightwise_picks_made");
 
     setCreateGameModalOpen(false);
+  };
+
+  const handleResetAll = () => {
+    if (
+      !window.confirm(
+        "This will reset everything — players, draft settings, and all picks. Continue?"
+      )
+    ) {
+      return;
+    }
+    resetAllState();
   };
 
   return (
@@ -362,9 +377,8 @@ export default function App() {
                   Start Draft is available 24 hours before the event.
                 </p>
               )}
-              {
+              {gameCreated && !eventAlreadyStarted && (
                 <button
-                  disabled={eventAlreadyStarted}
                   onClick={handleResetAll}
                   style={{
                     marginTop: "1rem",
@@ -378,29 +392,25 @@ export default function App() {
                     margin: "6px",
                   }}
                   onMouseEnter={(e) => {
-                    if (eventAlreadyStarted) return;
                     e.currentTarget.style.boxShadow = "0 0 12px rgba(0,0,0,0.3)";
                     e.currentTarget.style.backgroundColor = "black";
                     e.currentTarget.style.color = "#ff0000";
                   }}
                   onMouseLeave={(e) => {
-                    if (eventAlreadyStarted) return;
                     e.currentTarget.style.boxShadow = "none";
                     e.currentTarget.style.backgroundColor = "red";
                     e.currentTarget.style.color = "#000000";
                   }}
                   onMouseDown={(e) => {
-                    if (eventAlreadyStarted) return;
                     e.currentTarget.style.transform = "scale(0.9)";
                   }}
                   onMouseUp={(e) => {
-                    if (eventAlreadyStarted) return;
                     e.currentTarget.style.transform = "scale(1)";
                   }}
                 >
                   {"Reset"}
                 </button>
-              }
+              )}
             </div>
 
             {isDraftFinished && (
